@@ -3,15 +3,24 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.chatgui.HelloController">
-   <children>
-      <TextArea fx:id="textArea" editable="false" prefHeight="350.0" prefWidth="500.0" />
-      <HBox prefHeight="50.0" prefWidth="500.0">
-         <children>
-            <TextField fx:id="textField" prefWidth="425.0" />
-            <Button fx:id="sendBtn" mnemonicParsing="false" onAction="#handlerSand" prefWidth="75.0" text="Отправить" />
-         </children>
-      </HBox>
-      <Button onAction="#connect" prefWidth="500" mnemonicParsing="false" text="Подключиться" />
-   </children>
-</VBox>
+<HBox
+  xmlns="http://javafx.com/javafx/11.0.2"
+  xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="com.example.chatgui.HelloController"
+   prefHeight="400"
+   prefWidth="500">
+   <TextArea editable="false" prefHeight="400" prefWidth="200" fx:id="usersTextArea"/>
+   <VBox alignment="CENTER" spacing="20.0"  prefWidth="300" prefHeight="400">
+      <children>
+         <TextArea fx:id="textArea" editable="false" prefHeight="350.0" prefWidth="300" />
+         <HBox prefHeight="50.0" prefWidth="300">
+            <children>
+               <TextField fx:id="textField" prefWidth="225.0" />
+               <Button fx:id="sendBtn" mnemonicParsing="false" onAction="#handlerSand" prefWidth="75.0" text="Отправить" />
+            </children>
+         </HBox>
+         <Button onAction="#connect" prefWidth="500" mnemonicParsing="false" text="Подключиться" />
+      </children>
+   </VBox>
+</HBox>
+

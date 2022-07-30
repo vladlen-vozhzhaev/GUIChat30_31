@@ -1,6 +1,7 @@
 module com.example.chatgui {
     requires javafx.controls;
     requires javafx.fxml;
+    requires json.simple;
 
     requires org.kordamp.bootstrapfx.core;
 
