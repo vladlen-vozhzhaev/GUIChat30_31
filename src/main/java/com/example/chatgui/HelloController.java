@@ -1,11 +1,16 @@
 package com.example.chatgui;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 import java.io.*;
 import java.net.Socket;
+
+import javafx.scene.layout.VBox;
 import org.json.simple.*;
 import org.json.simple.parser.JSONParser;
 
@@ -18,10 +23,11 @@ public class HelloController {
     @FXML
     TextArea textArea;
     @FXML
-    TextArea usersTextArea;
+    VBox usersListVBox;
     String login = null;
     String pass = null;
     boolean isAuth = false;
+    int toUser = 0; // 0 - расссылка всем пользователям
     public HelloController() {
 
     }
@@ -32,7 +38,7 @@ public class HelloController {
             FileInputStream fis = new FileInputStream("C://java/token.txt");
             int i = -1;
             while ((i = fis.read()) != -1){
-                token += ((char) i);
+                //token += ((char) i);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -51,14 +57,17 @@ public class HelloController {
         }
     }
     @FXML
-    protected void handlerSand() throws IOException {
+    protected void handlerSend() throws IOException {
         String text = textField.getText();
         textArea.appendText("Вы:"+text+"\n");
         textField.clear();
         textField.requestFocus();
-        if(isAuth)
-            out.writeUTF(text);
-        else{
+        if(isAuth) {
+            JSONObject request = new JSONObject();
+            request.put("msg", text);
+            request.put("to_user", toUser);
+            out.writeUTF(request.toJSONString());
+        }else{
             if (login == null){
                 login = text;
                 auth();
@@ -104,8 +113,25 @@ public class HelloController {
                                 }
                             } else if(jsonResponse.get("users") != null){
                                 JSONArray jsonArray = (JSONArray) jsonParser.parse(jsonResponse.get("users").toString());
+                                usersListVBox.getChildren().removeAll();
                                 for (int i = 0; i < jsonArray.size(); i++) {
-                                    usersTextArea.appendText(jsonArray.get(i).toString()+"\n");
+                                    Button userBtn = new Button();
+                                    JSONObject userInfo = (JSONObject) jsonParser.parse(jsonArray.get(i).toString());
+                                    userBtn.setText(userInfo.get("name").toString());
+                                    userBtn.setOnAction(e->{
+                                        textArea.setText("");
+                                        // добавляем список сообщений на textArea
+                                        toUser = Integer.parseInt(userInfo.get("user_id").toString());
+                                    });
+                                    usersListVBox.getChildren().add(userBtn);
+                                    //usersTextArea.appendText(jsonArray.get(i).toString()+"\n");
+                                }
+                            }else if (jsonResponse.get("messages") != null){
+                              JSONArray jsonArray = (JSONArray) jsonParser.parse(jsonResponse.get("messages").toString());
+                                for (int i = 0; i < jsonArray.size(); i++) {
+                                    JSONObject message = (JSONObject) jsonArray.get(i);
+                                    String text = message.get("name").toString()+": "+message.get("text").toString()+"\n";
+                                    textArea.appendText(text);
                                 }
                             }else{
                                 textArea.appendText(jsonResponse.get("msg").toString());
