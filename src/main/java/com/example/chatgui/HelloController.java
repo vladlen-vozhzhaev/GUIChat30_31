@@ -1,5 +1,6 @@
 package com.example.chatgui;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -28,9 +29,7 @@ public class HelloController {
     String pass = null;
     boolean isAuth = false;
     int toUser = 0; // 0 - расссылка всем пользователям
-    public HelloController() {
 
-    }
     @FXML
     protected void auth() throws IOException {
         String token = "";
@@ -92,6 +91,7 @@ public class HelloController {
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    int currentId =0;
                     while (true){
                         try {
                             if(!isAuth) auth();
@@ -106,6 +106,7 @@ public class HelloController {
                                 else if(jsonResponse.get("authResult").equals("success")) {
                                     isAuth = true;
                                     String token = jsonResponse.get("token").toString();
+                                    currentId = Integer.parseInt(jsonResponse.get("id").toString());
                                     FileOutputStream fos = new FileOutputStream("C://java/token.txt");
                                     byte[] buffer = token.getBytes();
                                     fos.write(buffer);
@@ -114,16 +115,41 @@ public class HelloController {
                             } else if(jsonResponse.get("users") != null){
                                 JSONArray jsonArray = (JSONArray) jsonParser.parse(jsonResponse.get("users").toString());
                                 usersListVBox.getChildren().removeAll();
+                                Platform.runLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        usersListVBox.getChildren().clear();
+                                    }
+                                });
                                 for (int i = 0; i < jsonArray.size(); i++) {
                                     Button userBtn = new Button();
                                     JSONObject userInfo = (JSONObject) jsonParser.parse(jsonArray.get(i).toString());
+                                    if(Integer.parseInt(userInfo.get("user_id").toString()) == currentId) continue;
                                     userBtn.setText(userInfo.get("name").toString());
                                     userBtn.setOnAction(e->{
                                         textArea.setText("");
                                         // добавляем список сообщений на textArea
                                         toUser = Integer.parseInt(userInfo.get("user_id").toString());
+                                        System.out.println(toUser);
+                                        JSONObject jsonObject = new JSONObject();
+                                        jsonObject.put("getMessageToUser", toUser);
+                                        try {
+                                            out.writeUTF(jsonObject.toJSONString());
+                                            JSONArray privateMessages = (JSONArray) jsonParser.parse(is.readUTF());
+                                            for (int j = 0; j < privateMessages.size(); j++) {
+                                                textArea.appendText(privateMessages.get(j).toString());
+                                            }
+                                        } catch (Exception ex) {
+                                            ex.printStackTrace();
+                                        }
                                     });
-                                    usersListVBox.getChildren().add(userBtn);
+                                    Platform.runLater(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            usersListVBox.getChildren().add(userBtn);
+                                        }
+                                    });
+
                                     //usersTextArea.appendText(jsonArray.get(i).toString()+"\n");
                                 }
                             }else if (jsonResponse.get("messages") != null){
@@ -134,7 +160,7 @@ public class HelloController {
                                     textArea.appendText(text);
                                 }
                             }else{
-                                textArea.appendText(jsonResponse.get("msg").toString());
+                                textArea.appendText(jsonResponse.get("msg").toString()+"\n");
                             }
                         } catch (Exception e) {
                             e.printStackTrace();

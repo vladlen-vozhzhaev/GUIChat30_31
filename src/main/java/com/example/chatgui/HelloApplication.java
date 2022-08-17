@@ -15,6 +15,9 @@ public class HelloApplication extends Application {
         stage.setTitle("ChatGUI");
         stage.setScene(scene);
         stage.show();
+        stage.getScene();
+        HelloController controller = fxmlLoader.getController();
+        controller.connect();
     }
 
     public static void main(String[] args) {

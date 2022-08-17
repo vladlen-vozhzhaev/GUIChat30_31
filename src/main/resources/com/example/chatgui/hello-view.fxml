@@ -18,11 +18,11 @@
          <TextArea fx:id="textArea" editable="false" prefHeight="350.0" prefWidth="300" />
          <HBox prefHeight="50.0" prefWidth="300">
             <children>
-               <TextField fx:id="textField" prefWidth="225.0" />
+               <TextField onAction="#handlerSend" fx:id="textField" prefWidth="225.0" />
                <Button fx:id="sendBtn" mnemonicParsing="false" onAction="#handlerSend" prefWidth="75.0" text="Отправить" />
             </children>
          </HBox>
-         <Button onAction="#connect" prefWidth="500" mnemonicParsing="false" text="Подключиться" />
+         <!--<Button onAction="#connect" prefWidth="500" mnemonicParsing="false" text="Подключиться" />-->
       </children>
    </VBox>
 </HBox>
