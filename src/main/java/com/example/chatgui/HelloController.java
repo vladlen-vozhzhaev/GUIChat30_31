@@ -100,7 +100,6 @@ public class HelloController {
                             JSONObject jsonResponse = (JSONObject) jsonParser.parse(response);
                             System.out.println(jsonResponse.get("authResult"));
                             if(jsonResponse.get("authResult")!= null){
-
                                 if(jsonResponse.get("authResult").equals("error"))
                                     textArea.appendText("Неправильный логин или пароль\n");
                                 else if(jsonResponse.get("authResult").equals("success")) {
@@ -119,6 +118,20 @@ public class HelloController {
                                     @Override
                                     public void run() {
                                         usersListVBox.getChildren().clear();
+                                        Button commonChatBtn = new Button();
+                                        commonChatBtn.setText("Общий чат");
+                                        commonChatBtn.setOnAction(e->{
+                                            textArea.setText("");
+                                            toUser = 0;
+                                            JSONObject jsonObject = new JSONObject();
+                                            jsonObject.put("getHistoryMessage", 1);
+                                            try {
+                                                out.writeUTF(jsonObject.toJSONString());
+                                            } catch (IOException ex) {
+                                                ex.printStackTrace();
+                                            }
+                                        });
+                                        usersListVBox.getChildren().add(commonChatBtn);
                                     }
                                 });
                                 for (int i = 0; i < jsonArray.size(); i++) {
@@ -127,21 +140,28 @@ public class HelloController {
                                     if(Integer.parseInt(userInfo.get("user_id").toString()) == currentId) continue;
                                     userBtn.setText(userInfo.get("name").toString());
                                     userBtn.setOnAction(e->{
-                                        textArea.setText("");
-                                        // добавляем список сообщений на textArea
-                                        toUser = Integer.parseInt(userInfo.get("user_id").toString());
-                                        System.out.println(toUser);
-                                        JSONObject jsonObject = new JSONObject();
-                                        jsonObject.put("getMessageToUser", toUser);
-                                        try {
-                                            out.writeUTF(jsonObject.toJSONString());
-                                            JSONArray privateMessages = (JSONArray) jsonParser.parse(is.readUTF());
-                                            for (int j = 0; j < privateMessages.size(); j++) {
-                                                textArea.appendText(privateMessages.get(j).toString());
+                                        Thread threadPrivateMessage = new Thread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Platform.runLater(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        textArea.setText("");
+                                                    }
+                                                });
+                                                // добавляем список сообщений на textArea
+                                                toUser = Integer.parseInt(userInfo.get("user_id").toString());
+                                                System.out.println(toUser);
+                                                JSONObject jsonObject = new JSONObject();
+                                                jsonObject.put("getMessageToUser", toUser);
+                                                try {
+                                                    out.writeUTF(jsonObject.toJSONString());
+                                                } catch (Exception ex) {
+                                                    ex.printStackTrace();
+                                                }
                                             }
-                                        } catch (Exception ex) {
-                                            ex.printStackTrace();
-                                        }
+                                        });
+                                        threadPrivateMessage.start();
                                     });
                                     Platform.runLater(new Runnable() {
                                         @Override
@@ -159,8 +179,16 @@ public class HelloController {
                                     String text = message.get("name").toString()+": "+message.get("text").toString()+"\n";
                                     textArea.appendText(text);
                                 }
+                            }else if(jsonResponse.get("privateMessages") != null){
+                                JSONArray privateMessages = (JSONArray) jsonParser.parse(jsonResponse.get("privateMessages").toString());
+                                for (int i = 0; i < privateMessages.size(); i++) {
+                                    JSONObject message = (JSONObject) privateMessages.get(i);
+                                    String text = message.get("from_id")+"_"+message.get("to_id")+": "+message.get("text");
+                                    textArea.appendText(text+"\n");
+                                }
                             }else{
-                                textArea.appendText(jsonResponse.get("msg").toString()+"\n");
+                                if(toUser == Integer.parseInt(jsonResponse.get("from_id").toString()))
+                                    textArea.appendText(jsonResponse.get("msg").toString()+"\n");
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
