@@ -17,7 +17,7 @@ public class HelloApplication extends Application {
         stage.show();
         stage.getScene();
         HelloController controller = fxmlLoader.getController();
-        controller.connect();
+        controller.connect(scene);
     }
 
     public static void main(String[] args) {

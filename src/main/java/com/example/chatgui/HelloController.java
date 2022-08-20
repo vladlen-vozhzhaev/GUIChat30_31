@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -11,6 +12,7 @@ import javafx.scene.control.TextField;
 import java.io.*;
 import java.net.Socket;
 
+import javafx.scene.layout.Background;
 import javafx.scene.layout.VBox;
 import org.json.simple.*;
 import org.json.simple.parser.JSONParser;
@@ -58,6 +60,7 @@ public class HelloController {
     @FXML
     protected void handlerSend() throws IOException {
         String text = textField.getText();
+        if(text.equals("")) return;
         textArea.appendText("Вы:"+text+"\n");
         textField.clear();
         textField.requestFocus();
@@ -83,7 +86,7 @@ public class HelloController {
         }
     }
     @FXML
-    public void connect(){
+    public void connect(Scene scene){
         try {
             this.socket = new Socket("127.0.0.1", 9743);
             this.out = new DataOutputStream(this.socket.getOutputStream());
@@ -139,6 +142,7 @@ public class HelloController {
                                     JSONObject userInfo = (JSONObject) jsonParser.parse(jsonArray.get(i).toString());
                                     if(Integer.parseInt(userInfo.get("user_id").toString()) == currentId) continue;
                                     userBtn.setText(userInfo.get("name").toString());
+                                    userBtn.setId("user_"+userInfo.get("user_id").toString());
                                     userBtn.setOnAction(e->{
                                         Thread threadPrivateMessage = new Thread(new Runnable() {
                                             @Override
@@ -189,6 +193,11 @@ public class HelloController {
                             }else{
                                 if(toUser == Integer.parseInt(jsonResponse.get("from_id").toString()))
                                     textArea.appendText(jsonResponse.get("msg").toString()+"\n");
+                                else{
+                                    String fromId = jsonResponse.get("from_id").toString();
+                                    Button button = (Button) scene.lookup("#user_"+fromId);
+                                    button.setStyle("-fx-base: coral;");
+                                }
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
